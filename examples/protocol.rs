@@ -1,35 +1,3 @@
-# BitWrap
-
-# change log 
-1. TODO data_len 可以直接访问
-2. TODO pack uppack 大小端设置
-
-[![docs](https://docs.rs/bitwrap/badge.svg)](https://docs.rs/bitwrap)
-
-BitWrap is a derive macro and trait to declare a struct data member
-with explicit size, in bits.
-
----
-
-## BitWrapExt Trait
-
-Trait declares 2 methods:
-
-```rust
-fn pack(&self, dst: &mut [u8]) -> Result<usize, BitWrapError>
-```
-
-`pack` method serialize struct fields into `dst` array
-
-```rust
-fn unpack(&mut self, src: &[u8]) -> Result<usize, BitWrapError>
-```
-
-`unpack` method deserialize struct fields from `src` array
-
-## BitWrap Macro
-
-```rust
 use {
     core::convert::{
         TryFrom,
@@ -71,39 +39,49 @@ impl TryFrom<Variant> for u8 {
     }
 }
 
-#[derive(BitWrap)]
-struct Packet {
+#[derive(Default, Debug, BitWrap)]
+struct ControlPacket {
     // single bit field
-    #[bitfield(1)]
-    field_1: u8,
+    #[bitfield(8)]
+    id: u8,
 
     // bit field as boolean. 0 is false, otherwise is true
-    #[bitfield(1)]
-    field_2: bool,
-
-    // virtual field with option `name`
-    // unpack reads bits to the internall variable `_reserved`
-    // pack sets 6 bits from defined `value`
-    #[bitfield(6, name = _reserved, value = 0b111111)]
-
-    // use TryFrom<u8> for Variant
     #[bitfield(8)]
-    variant: Variant,
-
-    // use TryFrom<u32> for Ipv4Addr
-    #[bitfield(32)]
-    ip: std::net::Ipv4Addr
-
-    // byte array
-    #[bitfield]
-    mac: [u8; 6],
+    dataType: u8,
 
     // virtual field with optn `name` to define buffer length
-    #[bitfield(8, name = data_len, value = self.data.len())]
-
+    #[bitfield(16, name = data_len, value = self.data.len())]
     // get slice of `data_len` bytes and call BitWrapExt method for Vec<T>
     // where T is u8 or with implemented BitWrapExt + Default traits
     #[bitfield(data_len)]
     data: Vec<u8>,
+
+    // bit field as boolean. 0 is false, otherwise is true
+    #[bitfield(8)]
+    crc: u8,
 }
-```
+
+fn main() {
+
+    let mut packet = ControlPacket::default();
+    packet.id = 1;
+    packet.dataType = 2;
+    packet.data = vec![1,2,3];
+    packet.crc = 2;
+
+    let len: usize = 8;
+    let mut buffer = vec![0 as u8; len];
+
+    let result = packet.pack(&mut buffer).unwrap();
+    println!("res {:?}", result);
+    println!("res {:?}", buffer);
+
+    const DATA: &[u8] = &[1, 2, 0, 3, 1, 2, 3, 2];
+
+    let mut packet = ControlPacket::default();
+    let result = packet.unpack(DATA).unwrap();
+    println!("res {:?}", result);
+    println!("res {:?}", packet);
+    println!("res {:?}", packet.data_len);
+
+}
