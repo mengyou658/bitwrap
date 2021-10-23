@@ -1,4 +1,4 @@
-use bitwrap::*;
+use bitwrap_extra::*;
 
 
 #[test]

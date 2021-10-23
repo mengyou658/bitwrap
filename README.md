@@ -1,7 +1,7 @@
 # BitWrap
 
 # change log 
-1. TODO data_len 可以直接访问
+1. 虚拟变量 可以直接访问
 2. TODO pack uppack 大小端设置
 
 [![docs](https://docs.rs/bitwrap/badge.svg)](https://docs.rs/bitwrap)
@@ -36,7 +36,7 @@ use {
         Infallible,
     },
     std::net::Ipv4Addr,
-    bitwrap::{
+    bitwrap_extra::{
         BitWrap,
         BitWrapExt,
         BitWrapError,
@@ -106,4 +106,9 @@ struct Packet {
     #[bitfield(data_len)]
     data: Vec<u8>,
 }
+```
+
+# debug
+```
+cargo expand --test array > tests/array_expand.rs
 ```

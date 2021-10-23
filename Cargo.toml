@@ -1,5 +1,5 @@
 [package]
-name = "bitwrap"
+name = "bitwrap_extra"
 version = "2.0.1"
 authors = ["Cesbo Developers Team"]
 categories = [
@@ -8,8 +8,8 @@ categories = [
     "no-std",
 ]
 description = "pack/unpack data into byte array"
-documentation = "https://docs.rs/bitwrap"
-repository = "https://github.com/cesbo/bitwrap"
+documentation = "https://docs.rs/bitwrap_extra"
+repository = "https://github.com/mengyou658/bitwrap"
 edition = "2018"
 keywords = [
     "bit",
@@ -30,4 +30,4 @@ default = [
 members = [".", "bitwrap_derive"]
 
 [dependencies]
-bitwrap_derive = { path = "./bitwrap_derive", version = "2.0.0" }
+bitwrap_derive_extra = { path = "./bitwrap_derive", version = "2.0.0" }

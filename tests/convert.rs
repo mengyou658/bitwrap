@@ -5,7 +5,7 @@ use {
         TryFrom,
         Infallible,
     },
-    bitwrap::*,
+    bitwrap_extra::*,
 };
 
 

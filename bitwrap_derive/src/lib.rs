@@ -137,7 +137,7 @@ impl BitWrapMacro {
             if dst.len() >= limit {
                 offset += self.#field_ident.pack(&mut dst[offset .. limit])?;
             } else {
-                return Err(bitwrap::BitWrapError);
+                return Err(bitwrap_extra::BitWrapError);
             }
         });
 
@@ -145,7 +145,7 @@ impl BitWrapMacro {
             if src.len() >= limit {
                 offset += self.#field_ident.unpack(&src[offset .. limit])?;
             } else {
-                return Err(bitwrap::BitWrapError);
+                return Err(bitwrap_extra::BitWrapError);
             }
         });
     }
@@ -162,7 +162,7 @@ impl BitWrapMacro {
                     dst[offset .. next].clone_from_slice(&self.#field_ident);
                     offset = next;
                 } else {
-                    return Err(bitwrap::BitWrapError);
+                    return Err(bitwrap_extra::BitWrapError);
                 }
             });
 
@@ -172,7 +172,7 @@ impl BitWrapMacro {
                     self.#field_ident.clone_from_slice(&src[offset .. next]);
                     offset = next;
                 } else {
-                    return Err(bitwrap::BitWrapError);
+                    return Err(bitwrap_extra::BitWrapError);
                 }
             });
         } else {
@@ -242,7 +242,7 @@ impl BitWrapMacro {
 
             self.pack_list.extend(quote! {
                 if #bytes + offset > dst.len() {
-                    return Err(bitwrap::BitWrapError);
+                    return Err(bitwrap_extra::BitWrapError);
                 }
 
                 dst[offset] = 0;
@@ -250,7 +250,7 @@ impl BitWrapMacro {
 
             self.unpack_list.extend(quote! {
                 if #bytes + offset > src.len() {
-                    return Err(bitwrap::BitWrapError);
+                    return Err(bitwrap_extra::BitWrapError);
                 }
             });
         }
@@ -304,7 +304,10 @@ impl BitWrapMacro {
                 let #field_name = value ;
             });
 
-            return;
+            match field_ident {
+                None => return,
+                _ => (),
+            }
         }
 
         // set default conversion field -> bits
@@ -321,7 +324,10 @@ impl BitWrapMacro {
             }
         }
 
-        self.macro_make_bits(&ty, bits);
+        if field_name.is_empty() {
+            self.macro_make_bits(&ty, bits);
+
+        }
 
         // set default conversion bits -> field
         match field_ty {
@@ -367,15 +373,15 @@ impl BitWrapMacro {
         let unpack_list = &self.unpack_list;
 
         quote! {
-            impl bitwrap::BitWrapExt for #struct_id {
-                fn pack(&self, dst: &mut [u8]) -> Result<usize, bitwrap::BitWrapError> {
+            impl bitwrap_extra::BitWrapExt for #struct_id {
+                fn pack(&self, dst: &mut [u8]) -> Result<usize, bitwrap_extra::BitWrapError> {
                     use core::convert::TryFrom as _;
                     let mut offset: usize = 0;
                     #pack_list
                     Ok(offset)
                 }
 
-                fn unpack(&mut self, src: &[u8]) -> Result<usize, bitwrap::BitWrapError> {
+                fn unpack(&mut self, src: &[u8]) -> Result<usize, bitwrap_extra::BitWrapError> {
                     use core::convert::TryFrom as _;
                     let mut offset: usize = 0;
                     #unpack_list

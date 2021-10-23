@@ -1,6 +1,6 @@
-//! # bitwrap
+//! # bitwrap_extra
 //!
-//! [![docs](https://docs.rs/bitwrap/badge.svg)](https://docs.rs/bitwrap)
+//! [![docs](https://docs.rs/bitwrap/badge.svg)](https://docs.rs/bitwrap_extra)
 //!
 //! ## Intro
 //!
@@ -19,7 +19,7 @@ use {
 
 
 pub use {
-    bitwrap_derive::BitWrap,
+    bitwrap_derive_extra::BitWrap,
 };
 
 

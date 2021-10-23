@@ -1,7 +1,7 @@
 #![no_std]
 
 use {
-    bitwrap::{
+    bitwrap_extra::{
         BitWrap,
         BitWrapExt,
     },

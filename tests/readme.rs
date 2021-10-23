@@ -4,7 +4,7 @@ use {
         Infallible,
     },
     std::net::Ipv4Addr,
-    bitwrap::{
+    bitwrap_extra::{
         BitWrap,
         BitWrapExt,
         BitWrapError,

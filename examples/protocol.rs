@@ -4,7 +4,7 @@ use {
         Infallible,
     },
     std::net::Ipv4Addr,
-    bitwrap::{
+    bitwrap_extra::{
         BitWrap,
         BitWrapExt,
         BitWrapError,
@@ -51,6 +51,7 @@ struct ControlPacket {
 
     // virtual field with optn `name` to define buffer length
     #[bitfield(16, name = data_len, value = self.data.len())]
+    data_len: u16,
     // get slice of `data_len` bytes and call BitWrapExt method for Vec<T>
     // where T is u8 or with implemented BitWrapExt + Default traits
     #[bitfield(data_len)]
