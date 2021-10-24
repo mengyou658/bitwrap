@@ -14,7 +14,7 @@ struct ControlPacket {
     dataType1: u8,
     #[bitfield(4)]
     dataType2: u8,
-    # [bitfield (24 , name = data_len , value = self . data . len ())]
+    # [bitfield (24 , name = data_len , value = self . data . len () , pack = LE , unpack = LE)]
     data_len: u32,
     #[bitfield(data_len)]
     data: Vec<u8>,
@@ -105,14 +105,14 @@ impl bitwrap_extra::BitWrapExt for ControlPacket {
         dst[offset] = 0;
         let value = (self.data.len()) as u32;
         let data_len = value;
-        let mut pack_le = false;
-        dst[offset] |= ((value >> 16usize) as u8) & 255u8;
+        let mut pack_le = true;
+        dst[offset] |= ((value >> 0usize) as u8) & 255u8;
         offset += 1;
         dst[offset] = 0;
         dst[offset] |= ((value >> 8usize) as u8) & 255u8;
         offset += 1;
         dst[offset] = 0;
-        dst[offset] |= (value as u8) & 255u8;
+        dst[offset] |= ((value >> 16usize) as u8) & 255u8;
         offset += 1;
         let value: u32 = u32::try_from(self.data_len)?;
         let limit = offset + (data_len) as usize;
@@ -158,12 +158,12 @@ impl bitwrap_extra::BitWrapExt for ControlPacket {
             return Err(bitwrap_extra::BitWrapError);
         }
         let mut value: u32 = 0;
-        let mut unpack_le = false;
-        value |= ((src[offset] & 255u8) as u32) << 16usize;
+        let mut unpack_le = true;
+        value |= ((src[offset] & 255u8) as u32) << 0usize;
         offset += 1;
         value |= ((src[offset] & 255u8) as u32) << 8usize;
         offset += 1;
-        value |= (src[offset] & 255u8) as u32;
+        value |= ((src[offset] & 255u8) as u32) << 16usize;
         offset += 1;
         let data_len = value;
         self.data_len = u32::try_from(value)?;
@@ -185,7 +185,7 @@ impl bitwrap_extra::BitWrapExt for ControlPacket {
     }
 }
 fn main() {
-    const DATA: &[u8] = &[1, 2, 0, 0, 3, 1, 2, 3, 2];
+    const DATA: &[u8] = &[1, 2, 3, 0, 0, 1, 2, 3, 2];
     let mut packet = ControlPacket::default();
     packet.id = 1;
     packet.dataType1 = 2;
