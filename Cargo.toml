@@ -1,7 +1,7 @@
 [package]
 name = "bitwrap_extra"
 version = "2.0.1"
-authors = ["Cesbo Developers Team"]
+authors = ["Cesbo Developers Team", "mengyou658"]
 categories = [
     "data-structures",
     "embedded",
@@ -16,6 +16,9 @@ keywords = [
     "bitfield",
     "parser",
     "parsing",
+    "protocol",
+    "msb",
+    "lsb",
 ]
 license = "MIT"
 readme = "README.md"

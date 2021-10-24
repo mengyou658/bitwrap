@@ -6,7 +6,15 @@ description = "macro for bitwrap"
 documentation = "https://docs.rs/bitwrap_extra"
 repository = "https://github.com/mengyou658/bitwrap"
 edition = "2018"
-keywords = ["bit", "parser", "parsing"]
+keywords = [
+    "bit",
+    "bitfield",
+    "parser",
+    "parsing",
+    "protocol",
+    "msb",
+    "lsb",
+]
 license = "MIT"
 
 [lib]
