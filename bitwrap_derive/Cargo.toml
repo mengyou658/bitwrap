@@ -11,7 +11,7 @@ keywords = [
     "bitfield",
     "parser",
     "protocol",
-    "msb/lsb"
+    "lsb"
 ]
 license = "MIT"
 
