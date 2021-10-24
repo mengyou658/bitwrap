@@ -78,12 +78,8 @@ impl BitWrapMacro {
             panic!("edition le need complete u16/u32/u64/u128 byte")
         }
 
-        self.pack_list.extend(quote! {
-            let mut pack_le = #pack_le;
-        });
         self.unpack_list.extend(quote! {
             let mut value: #ty = 0;
-            let mut unpack_le = #unpack_le;
         });
 
         let mut tmp_index = 0 as usize;

@@ -1,7 +1,4 @@
 use {
-    core::convert::{
-        TryFrom,
-    },
     bitwrap_extra::{
         BitWrap,
         BitWrapExt,
