@@ -15,10 +15,8 @@ keywords = [
     "bit",
     "bitfield",
     "parser",
-    "parsing",
     "protocol",
-    "msb",
-    "lsb",
+    "msb/lsb"
 ]
 license = "MIT"
 readme = "README.md"
