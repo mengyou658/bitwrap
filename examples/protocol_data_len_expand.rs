@@ -4,7 +4,6 @@ use std::prelude::rust_2018::*;
 #[macro_use]
 extern crate std;
 use {
-    core::convert::{TryFrom},
     bitwrap_extra::{BitWrap, BitWrapExt},
 };
 struct ControlPacket {
@@ -85,7 +84,6 @@ impl bitwrap_extra::BitWrapExt for ControlPacket {
         }
         dst[offset] = 0;
         let value: u8 = u8::try_from(self.id)?;
-        let mut pack_le = false;
         dst[offset] |= (value as u8) & 255u8;
         offset += 1;
         if 1usize + offset > dst.len() {
@@ -93,10 +91,8 @@ impl bitwrap_extra::BitWrapExt for ControlPacket {
         }
         dst[offset] = 0;
         let value: u8 = u8::try_from(self.dataType1)?;
-        let mut pack_le = false;
         dst[offset] |= ((value as u8) & 15u8) << 4usize;
         let value: u8 = u8::try_from(self.dataType2)?;
-        let mut pack_le = false;
         dst[offset] |= (value as u8) & 15u8;
         offset += 1;
         if 3usize + offset > dst.len() {
@@ -105,7 +101,6 @@ impl bitwrap_extra::BitWrapExt for ControlPacket {
         dst[offset] = 0;
         let value = (self.data.len()) as u32;
         let data_len = value;
-        let mut pack_le = false;
         dst[offset] |= ((value >> 16usize) as u8) & 255u8;
         offset += 1;
         dst[offset] = 0;
@@ -126,7 +121,6 @@ impl bitwrap_extra::BitWrapExt for ControlPacket {
         }
         dst[offset] = 0;
         let value: u8 = u8::try_from(self.crc)?;
-        let mut pack_le = false;
         dst[offset] |= (value as u8) & 255u8;
         offset += 1;
         Ok(offset)
@@ -138,7 +132,6 @@ impl bitwrap_extra::BitWrapExt for ControlPacket {
             return Err(bitwrap_extra::BitWrapError);
         }
         let mut value: u8 = 0;
-        let mut unpack_le = false;
         value |= (src[offset] & 255u8) as u8;
         offset += 1;
         self.id = u8::try_from(value)?;
@@ -146,11 +139,9 @@ impl bitwrap_extra::BitWrapExt for ControlPacket {
             return Err(bitwrap_extra::BitWrapError);
         }
         let mut value: u8 = 0;
-        let mut unpack_le = false;
         value |= ((src[offset] >> 4usize) & 15u8) as u8;
         self.dataType1 = u8::try_from(value)?;
         let mut value: u8 = 0;
-        let mut unpack_le = false;
         value |= (src[offset] & 15u8) as u8;
         offset += 1;
         self.dataType2 = u8::try_from(value)?;
@@ -158,7 +149,6 @@ impl bitwrap_extra::BitWrapExt for ControlPacket {
             return Err(bitwrap_extra::BitWrapError);
         }
         let mut value: u32 = 0;
-        let mut unpack_le = false;
         value |= ((src[offset] & 255u8) as u32) << 16usize;
         offset += 1;
         value |= ((src[offset] & 255u8) as u32) << 8usize;
@@ -177,7 +167,6 @@ impl bitwrap_extra::BitWrapExt for ControlPacket {
             return Err(bitwrap_extra::BitWrapError);
         }
         let mut value: u8 = 0;
-        let mut unpack_le = false;
         value |= (src[offset] & 255u8) as u8;
         offset += 1;
         self.crc = u8::try_from(value)?;

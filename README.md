@@ -122,4 +122,5 @@ cargo expand --test array > tests/array_expand.rs
 cargo expand --example protocol > examples/protocol_expand.rs
 cargo expand --example protocol_le > examples/protocol_le_expand.rs
 cargo expand --example protocol_data_len > examples/protocol_data_len_expand.rs
+cargo expand --example protocol_nested > examples/protocol_nested_expand.rs
 ```
