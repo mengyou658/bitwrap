@@ -15,14 +15,12 @@ use {
     },
 };
 
-
 struct BitWrapMacro {
     struct_id: Ident,
     pack_list: TokenStream,
     unpack_list: TokenStream,
     bits: usize,
 }
-
 
 // convert TokenTree literal to usize
 #[inline]
@@ -59,7 +57,6 @@ fn bits_type(bits: usize) -> Ident {
     )
 }
 
-
 impl BitWrapMacro {
     fn new(ident: &Ident) -> Self {
         Self {
@@ -74,56 +71,90 @@ impl BitWrapMacro {
         assert_eq!(self.bits, 8, "bitwrap not aligned");
     }
 
-    fn macro_make_bits(&mut self, ty: &Ident, bits: usize) {
+    fn macro_make_bits(&mut self, ty: &Ident, bits: usize, pack_le: bool, unpack_le: bool) {
         let mut bits = bits;
 
+        if (pack_le || unpack_le) && (bits < 16 || bits % 8 != 0 || self.bits % 8 != 0){
+            panic!("edition le need complete u16/u32/u64/u128 byte")
+        }
+
+        self.pack_list.extend(quote! {
+            let mut pack_le = #pack_le;
+        });
         self.unpack_list.extend(quote! {
             let mut value: #ty = 0;
+            let mut unpack_le = #unpack_le;
         });
 
+        let mut tmp_index = 0 as usize;
         while bits > self.bits {
-            let shift = bits - self.bits; // value left shift
+            let mut shift_pack = bits - self.bits; // value left shift
+            let mut shift_unpack = shift_pack; // value left shift
             let mask = 0xFFu8 >> (8 - self.bits);
 
+            if pack_le  {
+                shift_pack = tmp_index * 8;
+            }
+
             self.pack_list.extend(quote! {
-                dst[offset] |= ((value >> #shift) as u8) & #mask;
+                dst[offset] |= ((value >> #shift_pack) as u8) & #mask;
                 offset += 1;
                 dst[offset] = 0;
             });
 
+            if unpack_le  {
+                shift_unpack = tmp_index * 8;
+            }
+
             self.unpack_list.extend(quote! {
-                value |= ((src[offset] & #mask) as #ty) << #shift;
+                value |= ((src[offset] & #mask) as #ty) << #shift_unpack;
                 offset += 1;
             });
-
             bits -= self.bits;
             self.bits = 8;
+            tmp_index +=1;
         }
 
         self.bits -= bits;
 
-        let shift = self.bits; // byte right shift
+        let mut shift_pack = self.bits; // byte right shift
+        let mut shift_unpack = shift_pack; // byte right shift
         let mask = 0xFFu8 >> (8 - bits);
 
-        if shift == 0 {
-            self.pack_list.extend(quote! {
-                dst[offset] |= (value as u8) & #mask;
-                offset += 1;
-            });
+        if shift_pack == 0 {
+            if pack_le  {
+                shift_pack = tmp_index * 8;
+                self.pack_list.extend(quote! {
+                    dst[offset] |= ((value >> #shift_pack) as u8) & #mask;
+                    offset += 1;
+                });
+            } else {
+                self.pack_list.extend(quote! {
+                    dst[offset] |= (value as u8) & #mask;
+                    offset += 1;
+                });
+            }
 
-            self.unpack_list.extend(quote! {
-                value |= (src[offset] & #mask) as #ty;
-                offset += 1;
-            });
+            if unpack_le  {
+                shift_unpack = tmp_index * 8;
+                self.unpack_list.extend(quote! {
+                    value |= ((src[offset] & #mask) as #ty) << #shift_unpack;
+                    offset += 1;
+                });
+            } else {
+                self.unpack_list.extend(quote! {
+                    value |= (src[offset] & #mask) as #ty;
+                    offset += 1;
+                });
+            }
 
             self.bits = 8;
         } else {
             self.pack_list.extend(quote! {
-                dst[offset] |= ((value as u8) & #mask) << #shift;
+                dst[offset] |= ((value as u8) & #mask) << #shift_pack;
             });
-
             self.unpack_list.extend(quote! {
-                value |= ((src[offset] >> #shift) & #mask) as #ty;
+                value |= ((src[offset] >> #shift_unpack) & #mask) as #ty;
             });
         }
     }
@@ -235,6 +266,8 @@ impl BitWrapMacro {
 
         let mut field_name = TokenStream::new();
         let mut field_value = TokenStream::new();
+        let mut pack_le_value = TokenStream::new();
+        let mut unpack_le_value = TokenStream::new();
 
         // check buffer len
         if self.bits == 8 {
@@ -276,6 +309,12 @@ impl BitWrapMacro {
                         "value" => {
                             extend_token_stream(&mut field_value, &mut iter);
                         }
+                        "pack" => {
+                            extend_token_stream(&mut pack_le_value, &mut iter);
+                        }
+                        "unpack" => {
+                            extend_token_stream(&mut unpack_le_value, &mut iter);
+                        }
 
                         v => panic!("bitfield has unexpected argument: {}", v),
                     }
@@ -283,6 +322,9 @@ impl BitWrapMacro {
                 _ => panic!("bitfield has wrong format"),
             }
         }
+
+        let pack_le = if !pack_le_value.is_empty() && pack_le_value.to_string().trim().to_uppercase() == "LE" { true } else { false };
+        let unpack_le = if !unpack_le_value.is_empty() && unpack_le_value.to_string().trim().to_uppercase() == "LE" { true } else { false };
 
         if ! field_name.is_empty() {
             //  name + value
@@ -298,7 +340,7 @@ impl BitWrapMacro {
 
             // TODO: skip if name started with _
 
-            self.macro_make_bits(&ty, bits);
+            self.macro_make_bits(&ty, bits, pack_le, unpack_le);
 
             self.unpack_list.extend(quote! {
                 let #field_name = value ;
@@ -325,7 +367,7 @@ impl BitWrapMacro {
         }
 
         if field_name.is_empty() {
-            self.macro_make_bits(&ty, bits);
+            self.macro_make_bits(&ty, bits, pack_le, unpack_le);
 
         }
 

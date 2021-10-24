@@ -19,7 +19,7 @@ use {
 
 
 pub use {
-    bitwrap_derive_extra::BitWrap,
+    bitwrap_derive_extra::{BitWrap},
 };
 
 

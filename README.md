@@ -1,8 +1,16 @@
 # BitWrap
 
 # change log 
-1. 虚拟变量 可以直接访问
-2. TODO pack uppack 大小端设置
+1. virtual field set field 虚拟变量如果设置，则设置self字段可以访问
+    ```
+    #[bitfield(16, name = data_len, value = self.data.len(), pack = LE, unpack = LE)]
+    data_len: u16,
+    ```
+2. edition default be, make pack/uppack support le config，（） 大小端增加配置，默认是大端
+    ```
+    #[bitfield(16, name = data_len, value = self.data.len(), pack = LE, unpack = LE)]
+    data_len: u16,
+    ```
 
 [![docs](https://docs.rs/bitwrap/badge.svg)](https://docs.rs/bitwrap)
 
@@ -111,4 +119,5 @@ struct Packet {
 # debug
 ```
 cargo expand --test array > tests/array_expand.rs
+cargo expand --example protocol > examples/protocol_expand.rs
 ```
