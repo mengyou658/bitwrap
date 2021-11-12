@@ -11,7 +11,11 @@
     #[bitfield(16, name = data_len, value = self.data.len(), pack = LE, unpack = LE)]
     data_len: u16,
     ```
-3. TODO sub struct add len() fn
+3. sub struct add len() fn 嵌套结构体 自动增加长度函数
+    ```
+    self.len()
+    ```
+4. TODO fix tests
 
 [![docs](https://docs.rs/bitwrap/badge.svg)](https://docs.rs/bitwrap)
 

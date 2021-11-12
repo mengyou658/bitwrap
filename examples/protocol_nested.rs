@@ -18,12 +18,6 @@ struct ControlPacketBody {
     data3: u8,
 }
 
-impl ControlPacketBody {
-    pub fn len(&self) -> u16 {
-        return 3;
-    }
-}
-
 
 #[derive(Default, Debug, BitWrap)]
 struct ControlPacket {

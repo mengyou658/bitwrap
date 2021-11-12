@@ -18,6 +18,7 @@ use {
 struct BitWrapMacro {
     struct_id: Ident,
     pack_list: TokenStream,
+    len_list: TokenStream,
     unpack_list: TokenStream,
     bits: usize,
 }
@@ -62,6 +63,7 @@ impl BitWrapMacro {
         Self {
             struct_id: ident.clone(),
             pack_list: TokenStream::default(),
+            len_list: TokenStream::default(),
             unpack_list: TokenStream::default(),
             bits: 0,
         }
@@ -182,6 +184,9 @@ impl BitWrapMacro {
         let field_ident = &field.ident;
 
         if let syn::Type::Array(_) = field_ty {
+            self.len_list.extend(quote! {
+                length += self.#field_ident.len() as usize;
+            });
             // [u8; N]
             self.pack_list.extend(quote! {
                 let next = offset + self.#field_ident.len();
@@ -241,6 +246,9 @@ impl BitWrapMacro {
                 literal_to_usize(&v).unwrap_or(0)
             }
             TokenTree::Ident(v) => {
+                self.len_list.extend(quote! {
+                    length += ( #v ) as usize;
+                });
                 self.pack_list.extend(quote! {
                     let limit = offset + ( #v ) as usize;
                 });
@@ -329,6 +337,11 @@ impl BitWrapMacro {
                 panic!("value is required for named filed");
             }
 
+            self.len_list.extend(quote! {
+                let #field_name = ( #field_value ) as usize ;
+                length += #field_name;
+            });
+
             self.pack_list.extend(quote! {
                 let value = ( #field_value ) as #ty ;
                 let #field_name = value ;
@@ -363,6 +376,9 @@ impl BitWrapMacro {
         }
 
         if field_name.is_empty() {
+            self.len_list.extend(quote! {
+                length += ( #bits ) as usize;
+            });
             self.macro_make_bits(&ty, bits, pack_le, unpack_le);
 
         }
@@ -408,6 +424,7 @@ impl BitWrapMacro {
 
         let struct_id = &self.struct_id;
         let pack_list = &self.pack_list;
+        let len_list = &self.len_list;
         let unpack_list = &self.unpack_list;
 
         quote! {
@@ -424,6 +441,12 @@ impl BitWrapMacro {
                     let mut offset: usize = 0;
                     #unpack_list
                     Ok(offset)
+                }
+
+                fn len(&self) -> usize {
+                    let mut length: usize = 0;
+                    #len_list
+                    (length / 8) as usize
                 }
             }
         }

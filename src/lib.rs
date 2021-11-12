@@ -51,6 +51,9 @@ pub trait BitWrapExt {
 
     /// Extract object field values from byte array
     fn unpack(&mut self, src: &[u8]) -> Result<usize, BitWrapError>;
+
+    /// len
+    fn len(&self) -> usize;
 }
 
 
@@ -71,6 +74,10 @@ impl BitWrapExt for Vec<u8> {
     fn unpack(&mut self, src: &[u8]) -> Result<usize, BitWrapError> {
         self.extend_from_slice(src);
         Ok(src.len())
+    }
+
+    fn len(&self) -> usize {
+        self.len()
     }
 }
 
@@ -95,5 +102,9 @@ impl<T: BitWrapExt + Default> BitWrapExt for Vec<T> {
             self.push(item);
         }
         Ok(skip)
+    }
+
+    fn len(&self) -> usize {
+        self.len()
     }
 }
