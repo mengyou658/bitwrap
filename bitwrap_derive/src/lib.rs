@@ -246,9 +246,9 @@ impl BitWrapMacro {
                 literal_to_usize(&v).unwrap_or(0)
             }
             TokenTree::Ident(v) => {
-                self.len_list.extend(quote! {
-                    length += ( #v ) as usize;
-                });
+                // self.len_list.extend(quote! {
+                //     length += ( #v ) as usize;
+                // });
                 self.pack_list.extend(quote! {
                     let limit = offset + ( #v ) as usize;
                 });
@@ -258,7 +258,6 @@ impl BitWrapMacro {
                 });
 
                 self.build_bitfield_array(field);
-
                 return;
             }
             _ => panic!("bitfield argument #1 has wrong type")
@@ -339,7 +338,7 @@ impl BitWrapMacro {
 
             self.len_list.extend(quote! {
                 let #field_name = ( #field_value ) as usize ;
-                length += #field_name;
+                length += #field_name * 8 as usize;
             });
 
             self.pack_list.extend(quote! {
@@ -355,23 +354,24 @@ impl BitWrapMacro {
                 let #field_name = value ;
             });
 
-            match field_ident {
-                None => return,
-                _ => (),
-            }
         }
 
         // set default conversion field -> bits
-        match field_ty {
-            syn::Type::Path(v) if v.path.is_ident("bool") => {
-                self.pack_list.extend(quote! {
+        let field_ident_val = field_ident.clone().unwrap();
+        let field_name_val = field_name.to_string();
+        //println!("build_bitfield_array_flag {:?} {:?} ", field_ident_val.to_string(), field_name_val);
+        if field_name.is_empty() || field_ident_val == field_name_val {
+            match field_ty {
+                syn::Type::Path(v) if v.path.is_ident("bool") => {
+                    self.pack_list.extend(quote! {
                     let value: #ty = if self.#field_ident { 1 } else { 0 } ;
                 });
-            }
-            _ => {
-                self.pack_list.extend(quote! {
+                }
+                _ => {
+                    self.pack_list.extend(quote! {
                     let value: #ty = #ty::try_from(self.#field_ident)? ;
                 });
+                }
             }
         }
 
@@ -380,22 +380,24 @@ impl BitWrapMacro {
                 length += ( #bits ) as usize;
             });
             self.macro_make_bits(&ty, bits, pack_le, unpack_le);
-
         }
 
         // set default conversion bits -> field
-        match field_ty {
-            syn::Type::Path(v) if v.path.is_ident("bool") => {
-                self.unpack_list.extend(quote! {
+        if field_name.is_empty() || field_ident_val == field_name_val {
+            match field_ty {
+                syn::Type::Path(v) if v.path.is_ident("bool") => {
+                    self.unpack_list.extend(quote! {
                     self.#field_ident = value != 0 ;
                 });
-            }
-            _ => {
-                self.unpack_list.extend(quote! {
+                }
+                _ => {
+                    self.unpack_list.extend(quote! {
                     self.#field_ident = #field_ty::try_from(value)? ;
                 });
+                }
             }
         }
+
     }
 
     fn build_field(&mut self, field: &syn::Field) {

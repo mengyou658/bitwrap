@@ -13,7 +13,8 @@ fn test_array() {
     #[derive(Default, BitWrap)]
     struct Packet {
         #[bitfield(8, name = _reserved, value = 0)]
-        #[bitfield(32)]
+        _reserved: u8,
+        #[bitfield]
         data: [u8; 4],
     }
 

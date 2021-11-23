@@ -61,8 +61,8 @@ fn test_readme() {
         #[bitfield(32)]
         ip: Ipv4Addr,
 
-        #[bitfield(48)]
-        mac: Vec<u8>,
+        #[bitfield]
+        mac: [u8; 6],
 
         #[bitfield(8, name = data_len, value = self.data.len())]
 
@@ -77,7 +77,7 @@ fn test_readme() {
                 field_2: false,
                 variant: Variant::Value55,
                 ip: std::net::Ipv4Addr::new(0, 0, 0, 0),
-                mac: vec![],
+                mac: [0; 6],
                 data: Vec::default(),
             }
         }
@@ -100,7 +100,7 @@ fn test_readme() {
     assert!(packet.field_2);
     assert_eq!(packet.variant, Variant::ValueAA);
     assert_eq!(packet.ip, Ipv4Addr::new(192, 168, 200, 176));
-    assert_eq!(packet.mac, vec![0x11, 0x22, 0x33, 0x44, 0x55, 0x66]);
+    assert_eq!(packet.mac, [0x11, 0x22, 0x33, 0x44, 0x55, 0x66]);
     assert_eq!(packet.data.as_slice(), "🦀".as_bytes());
 
     let mut buffer: [u8; 256] = [0; 256];
