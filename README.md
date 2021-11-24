@@ -15,7 +15,7 @@
     ```
     self.len()
     ```
-4. TODO fix tests
+4. fix tests
 
 [![docs](https://docs.rs/bitwrap/badge.svg)](https://docs.rs/bitwrap)
 
