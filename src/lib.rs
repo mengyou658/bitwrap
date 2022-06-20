@@ -47,7 +47,7 @@ impl From<Infallible> for BitWrapError {
 
 pub trait BitWrapExt {
     /// Build byte array
-    fn pack(&self, dst: &mut [u8]) -> Result<usize, BitWrapError>;
+    fn pack(&self) -> Result<Vec<u8>, BitWrapError>;
 
     /// Extract object field values from byte array
     fn unpack(&mut self, src: &[u8]) -> Result<usize, BitWrapError>;
@@ -60,14 +60,11 @@ pub trait BitWrapExt {
 #[cfg(feature = "std")]
 impl BitWrapExt for Vec<u8> {
     #[inline]
-    fn pack(&self, dst: &mut [u8]) -> Result<usize, BitWrapError> {
-        let len = self.len();
-        if dst.len() >= len {
-            dst[.. len].clone_from_slice(self.as_slice());
-            Ok(len)
-        } else {
-            Err(BitWrapError)
-        }
+    fn pack(&self) -> Result<Vec<u8>, BitWrapError> {
+        let len = self.len() as usize;
+        let mut dst = vec![0 as u8; len];
+        dst[.. len].clone_from_slice(self.as_slice());
+        Ok(dst)
     }
 
     #[inline]
@@ -85,12 +82,17 @@ impl BitWrapExt for Vec<u8> {
 #[cfg(feature = "std")]
 impl<T: BitWrapExt + Default> BitWrapExt for Vec<T> {
     #[inline]
-    fn pack(&self, dst: &mut [u8]) -> Result<usize, BitWrapError> {
+    fn pack(&self) -> Result<Vec<u8>, BitWrapError> {
+        let len = self.len() as usize;
+        let mut dst = vec![0 as u8; len];
         let mut skip = 0;
         for item in self {
-            skip += item.pack(&mut dst[skip ..])?;
+            let tmp = item.pack()?;
+            let tmp_len = tmp.len();
+            dst[skip..skip+ tmp_len].clone_from_slice(tmp.as_slice());
+            skip += tmp_len;
         }
-        Ok(skip)
+        Ok(dst)
     }
 
     #[inline]

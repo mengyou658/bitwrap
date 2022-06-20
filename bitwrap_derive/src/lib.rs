@@ -164,7 +164,10 @@ impl BitWrapMacro {
 
         self.pack_list.extend(quote! {
             if dst.len() >= limit {
-                offset += self.#field_ident.pack(&mut dst[offset .. limit])?;
+                let tmp = self.#field_ident.pack()?;
+                let tmp_len = tmp.len();
+                dst[offset..offset+tmp_len].clone_from_slice(tmp.as_slice());
+                offset += tmp_len;
             } else {
                 return Err(bitwrap_extra::BitWrapError);
             }
@@ -329,7 +332,12 @@ impl BitWrapMacro {
         let pack_le = if !pack_le_value.is_empty() && pack_le_value.to_string().trim().to_uppercase() == "LE" { true } else { false };
         let unpack_le = if !unpack_le_value.is_empty() && unpack_le_value.to_string().trim().to_uppercase() == "LE" { true } else { false };
 
-        if ! field_name.is_empty() {
+
+        self.len_list.extend(quote! {
+            length += ( #bits ) as usize;
+        });
+
+        if !field_name.is_empty() {
             //  name + value
 
             if field_value.is_empty() {
@@ -376,9 +384,6 @@ impl BitWrapMacro {
         }
 
         if field_name.is_empty() {
-            self.len_list.extend(quote! {
-                length += ( #bits ) as usize;
-            });
             self.macro_make_bits(&ty, bits, pack_le, unpack_le);
         }
 
@@ -431,11 +436,20 @@ impl BitWrapMacro {
 
         quote! {
             impl bitwrap_extra::BitWrapExt for #struct_id {
-                fn pack(&self, dst: &mut [u8]) -> Result<usize, bitwrap_extra::BitWrapError> {
+
+                fn len(&self) -> usize {
+                    let mut length: usize = 0;
+                    #len_list
+                    (length / 8) as usize
+                }
+
+                fn pack(&self) -> Result<Vec<u8>, bitwrap_extra::BitWrapError> {
                     use core::convert::TryFrom as _;
+                    let len = self.len() as usize;
+                    let mut dst = vec![0 as u8; len];
                     let mut offset: usize = 0;
                     #pack_list
-                    Ok(offset)
+                    Ok(dst)
                 }
 
                 fn unpack(&mut self, src: &[u8]) -> Result<usize, bitwrap_extra::BitWrapError> {
@@ -445,11 +459,6 @@ impl BitWrapMacro {
                     Ok(offset)
                 }
 
-                fn len(&self) -> usize {
-                    let mut length: usize = 0;
-                    #len_list
-                    (length / 8) as usize
-                }
             }
         }
     }
