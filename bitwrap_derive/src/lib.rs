@@ -309,7 +309,13 @@ impl BitWrapMacro {
         }
 
         // get type to store bits
-        let ty = bits_type(bits);
+        let mut ty = bits_type(bits);
+        let ty1 = field_ty.to_token_stream().to_string().replace(" ", "");
+        let basic_type = is_basic_type(field_ty);
+        // println!("basic_type {} {} {} {}", basic_type, ty, ty1, field_ident.to_token_stream().to_string());
+        if basic_type {
+            ty = Ident::new(ty1.as_str(), proc_macro2::Span::call_site());
+        }
 
         // parse attributes
         while let Some(item) = iter.next() {
@@ -346,10 +352,10 @@ impl BitWrapMacro {
         let pack_le = if !pack_le_value.is_empty() && pack_le_value.to_string().trim().to_uppercase() == "LE" { true } else { false };
         let unpack_le = if !unpack_le_value.is_empty() && unpack_le_value.to_string().trim().to_uppercase() == "LE" { true } else { false };
 
-        let basic_type = is_basic_type(field_ty);
         if !basic_type {
             // 不是基础类型 单独处理
             self.len_list.extend(quote! {
+                // #field_ty
                 length += (#bits) as usize;
             });
             self.pack_list.extend(quote! {
