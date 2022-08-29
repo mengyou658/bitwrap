@@ -25,25 +25,29 @@ struct ControlPacket {
     #[bitfield(data_len)]
     data: Vec<u8>,
 
+    #[bitfield(8)]
+    data1: Vec<u8>,
+
     // bit field as boolean. 0 is false, otherwise is true
     #[bitfield(8)]
     crc: u8,
 }
 
 fn main() {
-    const DATA: &[u8] = &[1, 2, 0, 3, 1, 2, 3, 2];
+    const DATA: &[u8] = &[1, 2, 0, 3, 1, 2, 3, 4, 2];
 
     let mut packet = ControlPacket::default();
     packet.id = 1;
     packet.dataType1 = 2;
     packet.dataType2 = 2;
     packet.data = vec![1,2,3];
+    packet.data1 = vec![4];
     packet.crc = 2;
 
     let len: usize = DATA.len();
     let mut buffer = vec![0 as u8; len];
 
-    let result = packet.pack(&mut buffer).unwrap();
+    let result = packet.pack().unwrap();
     println!("res {:?}", result);
     println!("res {:?}", buffer);
 

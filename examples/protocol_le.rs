@@ -43,7 +43,7 @@ fn main() {
     let len: usize = DATA.len();
     let mut buffer = vec![0 as u8; len];
 
-    let result = packet.pack(&mut buffer).unwrap();
+    let result = packet.pack().unwrap();
     println!("res {:?}", result);
     println!("res {:?}", buffer);
 

@@ -1,5 +1,7 @@
 extern crate proc_macro;
 
+use quote::ToTokens;
+use syn::Type;
 use {
     proc_macro2::{
         Ident,
@@ -40,6 +42,12 @@ fn extend_token_stream(stream: &mut TokenStream, iter: &mut IntoIter) {
     }
 }
 
+const BASIC_TYPE_LIST: &[&str] = &["u8", "u16", "u32", "u64", "u128", "i8", "i16", "i32", "i64", "i128", "isize", "usize", "f32", "f64"];
+
+fn is_basic_type(t: &Type) -> bool {
+    let ty = t.to_token_stream().to_string().replace(" ", "");
+    (*BASIC_TYPE_LIST).contains(&ty.as_str())
+}
 
 fn bits_type(bits: usize) -> Ident {
     Ident::new(
@@ -211,6 +219,9 @@ impl BitWrapMacro {
                 }
             });
         } else {
+            self.len_list.extend(quote! {
+                length += self.#field_ident.len() as usize;
+            });
             // Any object with BitWrap implementation
             self.pack_list.extend(quote! {
                 let limit = dst.len();
@@ -252,6 +263,9 @@ impl BitWrapMacro {
                 // self.len_list.extend(quote! {
                 //     length += ( #v ) as usize;
                 // });
+                self.len_list.extend(quote! {
+                    length += self.#field_ident.len() as usize;
+                });
                 self.pack_list.extend(quote! {
                     let limit = offset + ( #v ) as usize;
                 });
@@ -332,6 +346,23 @@ impl BitWrapMacro {
         let pack_le = if !pack_le_value.is_empty() && pack_le_value.to_string().trim().to_uppercase() == "LE" { true } else { false };
         let unpack_le = if !unpack_le_value.is_empty() && unpack_le_value.to_string().trim().to_uppercase() == "LE" { true } else { false };
 
+        let basic_type = is_basic_type(field_ty);
+        if !basic_type {
+            // 不是基础类型 单独处理
+            self.len_list.extend(quote! {
+                length += (#bits) as usize;
+            });
+            self.pack_list.extend(quote! {
+                    let limit = offset + ( #bits / 8usize ) as usize;
+                });
+
+            self.unpack_list.extend(quote! {
+                    let limit = offset + ( #bits / 8usize ) as usize;
+                });
+
+            self.build_bitfield_array(field);
+            return;
+        }
 
         self.len_list.extend(quote! {
             length += ( #bits ) as usize;

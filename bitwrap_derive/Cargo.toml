@@ -1,6 +1,6 @@
 [package]
 name = "bitwrap_derive_extra"
-version = "2.0.4"
+version = "2.0.5"
 authors = ["Cesbo Developers Team", "mengyou658"]
 description = "macro for bitwrap"
 documentation = "https://docs.rs/bitwrap_extra"
